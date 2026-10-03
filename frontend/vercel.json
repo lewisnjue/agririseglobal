@@ -1,6 +1,17 @@
 {
   "rewrites": [
     {
+      "source": "/blog/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Ff]acebookexternalhit|[Ff]acebot|[Mm]eta-externalagent|[Ww]hatsapp|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Ss]lackbot|[Tt]elegrambot).*"
+        }
+      ],
+      "destination": "/api/share/:slug"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
