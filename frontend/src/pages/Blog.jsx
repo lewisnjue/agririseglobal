@@ -8,19 +8,18 @@ import CategoryFilter from '../components/CategoryFilter';
 export default function Blog() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get('page') || '1', 10);
-  const categoryParam = searchParams.get('category') || 'all';
-  const [selectedCategory, setSelectedCategory] = useState(categoryParam);
+  const selectedCategory = searchParams.get('category') || 'all';
   const [data, setData] = useState({ posts: [], page: 1, totalPages: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const handleCategoryChange = (cat) => {
-    setSelectedCategory(cat);
     setSearchParams({ ...Object.fromEntries(searchParams), category: cat, page: '1' });
   };
 
   useEffect(() => {
     let cancelled = false;
+    setError(null);
     setLoading(true);
     const params = selectedCategory === 'all' ? {} : { category: selectedCategory };
     postsApi
@@ -35,7 +34,7 @@ export default function Blog() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [page, selectedCategory]);
+  }, [page, selectedCategory, searchParams]);
 
   return (
     <main className="min-h-[60vh] max-w-5xl mx-auto px-4 py-12">

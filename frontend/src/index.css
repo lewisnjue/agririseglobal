@@ -9,58 +9,58 @@ body {
   transition: background-color 180ms ease, color 180ms ease;
 }
 
-html.dark body {
+.dark body {
   background: #0f172a;
   color: #e2e8f0;
 }
 
-html.dark .site-shell {
+.dark .site-shell {
   background: #0f172a;
 }
 
-html.dark main,
-html.dark footer {
+.dark main,
+.dark footer {
   color: #e2e8f0;
 }
 
-html.dark .bg-white {
+.dark .bg-white {
   background-color: #1e293b;
 }
 
-html.dark .bg-slate-50,
-html.dark .bg-slate-100 {
+.dark .bg-slate-50,
+.dark .bg-slate-100 {
   background-color: #0f172a;
 }
 
-html.dark .bg-slate-200 {
+.dark .bg-slate-200 {
   background-color: #334155;
 }
 
-html.dark .text-slate-800,
-html.dark .text-slate-700 {
+.dark .text-slate-800,
+.dark .text-slate-700 {
   color: #f1f5f9;
 }
 
-html.dark .text-slate-600,
-html.dark .text-slate-500 {
+.dark .text-slate-600,
+.dark .text-slate-500 {
   color: #cbd5e1;
 }
 
-html.dark .border-slate-100,
-html.dark .border-slate-200,
-html.dark .border-slate-300 {
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
   border-color: #475569;
 }
 
-html.dark input,
-html.dark select,
-html.dark textarea {
+.dark input,
+.dark select,
+.dark textarea {
   background-color: #1e293b;
   color: #f1f5f9;
   border-color: #64748b;
 }
 
-html.dark .editorjs-shell {
+.dark .editorjs-shell {
   background: #1e293b;
   border-color: #475569;
 }

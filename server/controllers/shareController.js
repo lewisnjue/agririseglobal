@@ -1,7 +1,5 @@
 const pool = require('../config/db');
 
-const CRAWLER = /facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot/i;
-
 const escapeHtml = (value = '') => String(value)
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -9,10 +7,18 @@ const escapeHtml = (value = '') => String(value)
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;');
 
-const absoluteUrl = (value, request) => {
-  if (!value) return '';
-  if (/^https?:\/\//i.test(value)) return value;
-  return new URL(value, `${request.protocol}://${request.get('host')}`).toString();
+const publicImageUrl = (value, baseUrl) => {
+  if (!value || /^data:/i.test(value)) return '';
+  try {
+    const imageUrl = new URL(value, baseUrl);
+    if (!['http:', 'https:'].includes(imageUrl.protocol)) return '';
+    if (imageUrl.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(imageUrl.hostname)) {
+      imageUrl.protocol = 'https:';
+    }
+    return imageUrl.toString();
+  } catch {
+    return '';
+  }
 };
 
 const sharePost = async (req, res) => {
@@ -25,16 +31,15 @@ const sharePost = async (req, res) => {
 
     const post = result.rows[0];
     const frontendBase = (process.env.CLIENT_URL || '').split(',')[0].trim().replace(/\/$/, '');
-    const articleUrl = `${frontendBase}/blog/${encodeURIComponent(post.slug)}`;
     const serverBase = (process.env.SERVER_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const articleUrl = frontendBase ? `${frontendBase}/blog/${encodeURIComponent(post.slug)}` : '';
     const shareLink = `${serverBase}/share/${encodeURIComponent(post.slug)}`;
     const description = post.excerpt || `Read ${post.title} on Agri Rise Global`;
-    const image = absoluteUrl(post.featured_image, req).replace(/^http:\/\/(?!localhost)/i, 'https://');
+    const image = publicImageUrl(post.featured_image, serverBase)
+      || publicImageUrl(process.env.DEFAULT_OG_IMAGE, serverBase);
+    const safeArticleUrl = JSON.stringify(articleUrl).replace(/</g, '\\u003c');
 
-    if (!CRAWLER.test(req.get('user-agent') || '')) {
-      return res.redirect(302, articleUrl);
-    }
-
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
     res.type('html').send(`<!doctype html>
 <html lang="en">
   <head>
@@ -45,7 +50,7 @@ const sharePost = async (req, res) => {
     <meta property="og:title" content="${escapeHtml(post.title)}">
     <meta property="og:description" content="${escapeHtml(description)}">
     <meta property="og:type" content="article">
-    <meta property="og:url" content="${escapeHtml(shareLink)}">
+    <meta property="og:url" content="${escapeHtml(articleUrl || shareLink)}">
     ${image ? `<meta property="og:image" content="${escapeHtml(image)}">
     <meta property="og:image:secure_url" content="${escapeHtml(image)}">
     <meta property="og:image:alt" content="${escapeHtml(post.title)}">` : ''}
@@ -53,8 +58,12 @@ const sharePost = async (req, res) => {
     <meta name="twitter:title" content="${escapeHtml(post.title)}">
     <meta name="twitter:description" content="${escapeHtml(description)}">
     ${image ? `<meta name="twitter:image" content="${escapeHtml(image)}">` : ''}
+    ${articleUrl ? `<meta http-equiv="refresh" content="0;url=${escapeHtml(articleUrl)}">` : ''}
   </head>
-  <body><a href="${escapeHtml(articleUrl)}">${escapeHtml(post.title)}</a></body>
+  <body>
+    ${articleUrl ? `<script>window.location.replace(${safeArticleUrl});</script>` : ''}
+    <a href="${escapeHtml(articleUrl || shareLink)}">${escapeHtml(post.title)}</a>
+  </body>
 </html>`);
   } catch (err) {
     console.error('Share preview error:', err);

@@ -17,9 +17,12 @@ export function AuthProvider({ children }) {
     try {
       const data = await authApi.me();
       setUser(data.user);
-    } catch {
-      localStorage.removeItem('token');
-      setUser(null);
+    } catch (err) {
+      const status = err?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem('token');
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }

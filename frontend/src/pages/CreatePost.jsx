@@ -9,7 +9,7 @@ export default function CreatePost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState(null);
   const [featuredImage, setFeaturedImage] = useState('');
-  const [category, setCategory] = useState('general');
+  const [category, setCategory] = useState('generic');
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

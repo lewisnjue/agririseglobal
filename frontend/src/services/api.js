@@ -58,6 +58,10 @@ async function request(path, options = {}) {
             continue;
           }
           console.error('API Error:', error);
+          if (res.status === 401 && typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin/login')) {
+            localStorage.removeItem('token');
+            window.location.replace('/admin/login');
+          }
           throw error;
         }
         return data;
@@ -86,6 +90,7 @@ export const authApi = {
   me: () => request('/api/auth/me'),
   updateProfile: (body) => request('/api/auth/me', { method: 'PUT', body: JSON.stringify(body) }),
   getProfile: (id) => request(`/api/auth/profile/${id}`),
+  getSetupStatus: () => request('/api/auth/setup-status'),
   createUser: (body) => request('/api/auth/users', { method: 'POST', body: JSON.stringify(body) }),
   listUsers: () => request('/api/auth/users'),
   updateUser: (id, body) => request(`/api/auth/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),

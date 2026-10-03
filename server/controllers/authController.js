@@ -1,24 +1,53 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { randomBytes } = require('crypto');
 const pool = require('../config/db');
+
+const normalizeEmail = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '');
+const generateSecurePassword = () => randomBytes(16).toString('hex');
+
+const getSetupStatus = async (req, res) => {
+  try {
+    const existing = await pool.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+    res.json({ isSetup: existing.rows.length > 0 });
+  } catch (err) {
+    console.error('Setup status error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 const register = async (req, res) => {
   try {
-    // Only allow one admin account (first registration)
+    const { email, password, name } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedName = typeof name === 'string' ? name.trim() : '';
+
+    if (!normalizedEmail || !normalizedName) {
+      return res.status(400).json({ error: 'Email and name are required' });
+    }
+
+    const setupToken = process.env.SETUP_TOKEN;
+    if (setupToken) {
+      const providedToken = typeof req.body.setupToken === 'string' ? req.body.setupToken : '';
+      if (!providedToken || providedToken !== setupToken) {
+        return res.status(403).json({ error: 'Invalid setup token' });
+      }
+    }
+
     const existing = await pool.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
     if (existing.rows.length > 0) {
       return res.status(403).json({ error: 'Admin account already exists. Only administrators can create accounts.' });
     }
 
-    const { email, password, name } = req.body;
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Email, password, and name are required' });
+    const finalPassword = (typeof password === 'string' && password.trim()) ? password : generateSecurePassword();
+    if (finalPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = await bcrypt.hash(finalPassword, 12);
     const result = await pool.query(
       "INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, 'admin') RETURNING id, email, name, role, created_at",
-      [email, passwordHash, name]
+      [normalizedEmail, passwordHash, normalizedName]
     );
 
     res.status(201).json({ user: result.rows[0] });
@@ -33,7 +62,8 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
@@ -67,7 +97,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h', algorithm: 'HS256' }
     );
 
     res.json({
@@ -129,12 +159,20 @@ const getPublicProfile = async (req, res) => {
 // Admin only: create user account (author role)
 const createUser = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Email, password, and name are required' });
+    const email = normalizeEmail(req.body.email);
+    const password = typeof req.body.password === 'string' ? req.body.password.trim() : '';
+    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+
+    if (!email || !name) {
+      return res.status(400).json({ error: 'Email and name are required' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const finalPassword = password || generateSecurePassword();
+    if (finalPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    const passwordHash = await bcrypt.hash(finalPassword, 12);
     const result = await pool.query(
       "INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, 'author') RETURNING id, email, name, role, created_at",
       [email, passwordHash, name]
@@ -145,7 +183,7 @@ const createUser = async (req, res) => {
       message: 'User account created successfully. Send these credentials to the user.',
       credentials: {
         email: result.rows[0].email,
-        password: password, // Return password so admin can send it
+        password: finalPassword,
       }
     });
   } catch (err) {
@@ -238,4 +276,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { register, login, me, updateProfile, getPublicProfile, createUser, listUsers, updateUser, deleteUser };
+module.exports = { register, login, me, updateProfile, getPublicProfile, createUser, listUsers, updateUser, deleteUser, getSetupStatus };

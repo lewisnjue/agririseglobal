@@ -17,7 +17,7 @@ const initDb = async (retries = 5) => {
             bio TEXT DEFAULT '',
             location VARCHAR(255),
             role VARCHAR(20) DEFAULT 'author' CHECK (role IN ('admin', 'author')),
-            created_at TIMESTAMP DEFAULT NOW()
+            created_at TIMESTAMPTZ DEFAULT NOW()
           );
         `);
 
@@ -56,13 +56,13 @@ const initDb = async (retries = 5) => {
             content TEXT NOT NULL,
             slug VARCHAR(500) UNIQUE NOT NULL,
             featured_image TEXT,
-            category VARCHAR(50) DEFAULT 'general',
+            category VARCHAR(50) DEFAULT 'generic',
             source VARCHAR(20) DEFAULT 'native' CHECK (source IN ('native', 'wordpress')),
             wp_post_id INTEGER,
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
             status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
-            created_at TIMESTAMP DEFAULT NOW(),
-            updated_at TIMESTAMP DEFAULT NOW()
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW()
           );
         `);
 
@@ -88,9 +88,15 @@ const initDb = async (retries = 5) => {
           BEGIN
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
               WHERE table_name='posts' AND column_name='category') THEN
-              ALTER TABLE posts ADD COLUMN category VARCHAR(50) DEFAULT 'general';
+              ALTER TABLE posts ADD COLUMN category VARCHAR(50) DEFAULT 'generic';
             END IF;
           END $$;
+        `);
+
+        await client.query(`
+          UPDATE posts
+          SET category = 'generic'
+          WHERE category IN ('general', '') OR category IS NULL;
         `);
 
         await client.query(`

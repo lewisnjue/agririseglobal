@@ -18,14 +18,7 @@ export default function ProtectedAdminRoute({ children }) {
   }
 
   if (user.role !== 'admin') {
-    return (
-      <div className="min-h-[40vh] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Access denied. Administrator privileges required.</p>
-          <Navigate to="/admin/dashboard" replace />
-        </div>
-      </div>
-    );
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return children;

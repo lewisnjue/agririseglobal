@@ -4,6 +4,10 @@ const express = require('express');
 const cors = require('cors');
 const initDb = require('./config/initDb');
 
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be set and at least 32 characters long');
+}
+
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const uploadRoutes = require('./routes/upload');
@@ -48,6 +52,10 @@ app.use('/api/uploads', uploadRoutes);
 app.get('/api/health', (req, res) => {
   if (!dbReady) return res.status(503).json({ status: 'starting' });
   return res.json({ status: 'ok' });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
 });
 
 // Error handling middleware (must be after routes)

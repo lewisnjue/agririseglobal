@@ -12,7 +12,7 @@ export default function EditPost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState(null);
   const [featuredImage, setFeaturedImage] = useState('');
-  const [category, setCategory] = useState('general');
+  const [category, setCategory] = useState('generic');
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ export default function EditPost() {
           setTitle(p.title);
           setContent(p.content || '');
           setFeaturedImage(p.featured_image || '');
-          setCategory(p.category || 'general');
+          setCategory(p.category || 'generic');
           setStatus(p.status || 'draft');
         } else {
           setError('Post not found');

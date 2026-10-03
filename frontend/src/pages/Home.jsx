@@ -16,6 +16,7 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
+    setError(null);
     setLoading(true);
     const params = selectedCategory === 'all' ? {} : { category: selectedCategory };
     postsApi

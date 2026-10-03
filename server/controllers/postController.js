@@ -4,11 +4,25 @@ const createDOMPurify = require('dompurify');
 
 const DOMPurify = createDOMPurify(new JSDOM('').window);
 
-const slugify = (text) =>
-  text
+const decodeHtmlEntities = (text) => String(text || '')
+  .replace(/&nbsp;/gi, ' ')
+  .replace(/&amp;/gi, '&')
+  .replace(/&lt;/gi, '<')
+  .replace(/&gt;/gi, '>')
+  .replace(/&quot;/gi, '"')
+  .replace(/&#39;/gi, "'")
+  .replace(/&apos;/gi, "'");
+
+const slugify = (text) => {
+  const base = String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+
+  return base || `post-${Date.now()}`;
+};
 
 const TEXT_FIELDS_BY_TYPE = {
   paragraph: ['text'],
@@ -78,7 +92,7 @@ const extractExcerpt = (document, maxLength = 300) => {
       parts.push(data.items.map((item) => typeof item === 'string' ? item : item.text || item.content || '').join(' '));
     }
   }
-  const plain = parts.join(' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  const plain = decodeHtmlEntities(parts.join(' ')).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
   return plain.length > maxLength ? `${plain.slice(0, maxLength)}…` : plain;
 };
 
@@ -186,16 +200,21 @@ const createPost = async (req, res) => {
     }
 
     let slug = slugify(title);
-    // Ensure unique slug
-    const existing = await pool.query('SELECT id FROM posts WHERE slug = $1', [slug]);
-    if (existing.rows.length > 0) {
-      slug = `${slug}-${Date.now()}`;
-    }
+    const safeSlug = slug || `post-${Date.now()}`;
 
     const result = await pool.query(
       'INSERT INTO posts (title, content, excerpt, slug, featured_image, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-      [title, JSON.stringify(document), extractExcerpt(document), slug, featured_image || null, category || 'general', status || 'draft', 'native', req.user.id]
-    );
+      [title, JSON.stringify(document), extractExcerpt(document), safeSlug, featured_image || null, category || 'generic', status || 'draft', 'native', req.user.id]
+    ).catch((err) => {
+      if (err.code === '23505') {
+        const retrySlug = `${safeSlug}-${Date.now()}`;
+        return pool.query(
+          'INSERT INTO posts (title, content, excerpt, slug, featured_image, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+          [title, JSON.stringify(document), extractExcerpt(document), retrySlug, featured_image || null, category || 'generic', status || 'draft', 'native', req.user.id]
+        );
+      }
+      throw err;
+    });
 
     res.status(201).json({ post: result.rows[0] });
   } catch (err) {
@@ -229,7 +248,7 @@ const updatePost = async (req, res) => {
       }
     }
     const newImage = featured_image !== undefined ? featured_image : post.featured_image;
-    const newCategory = category !== undefined ? category : (post.category || 'general');
+    const newCategory = category !== undefined ? category : (post.category || 'generic');
     const newStatus = status || post.status;
 
     const result = await pool.query(
