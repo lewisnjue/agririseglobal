@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   const slug = req.query.slug;
   const env = globalThis.process?.env || {};
-  const apiBase = env.SHARE_API_URL || env.VITE_API_URL;
+  const apiBase = env.VITE_API_URL;
 
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');

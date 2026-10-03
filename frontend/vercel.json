@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*([Ff]acebookexternalhit|[Ff]acebot|[Mm]eta-externalagent|[Ww]hatsapp|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Ss]lackbot|[Tt]elegrambot).*"
+          "value": ".*([Ff]acebookexternalhit|[Ff]acebot|[Mm]eta-external(agent|fetcher)|[Ww]hatsapp|[Tt]witterbot|[Ll]inked[Ii]n[Bb]ot|[Ss]lackbot|[Tt]elegrambot|[Dd]iscordbot|[Pp]interest|[Gg]ooglebot).*"
         }
       ],
       "destination": "/api/share/:slug"
