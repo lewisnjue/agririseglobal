@@ -30,6 +30,30 @@ function InlineHtml({ html = '' }) {
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
+function List({ items = [], style }) {
+  const Tag = style === 'ordered' ? 'ol' : 'ul';
+  const checklist = style === 'checklist';
+
+  return (
+    <Tag className={checklist ? 'list-none pl-0' : undefined}>
+      {items.map((item, index) => (
+        <li key={`${index}-${itemText(item)}`} className="editorjs-preserve-whitespace">
+          {checklist && (
+            <input
+              type="checkbox"
+              className="mr-2 align-middle"
+              checked={Boolean(item?.meta?.checked ?? item?.checked)}
+              readOnly
+            />
+          )}
+          <InlineHtml html={itemText(item)} />
+          {Array.isArray(item?.items) && item.items.length > 0 && <List items={item.items} style={style} />}
+        </li>
+      ))}
+    </Tag>
+  );
+}
+
 function Block({ block }) {
   const data = block.data || {};
   switch (block.type) {
@@ -37,25 +61,22 @@ function Block({ block }) {
       const Tag = `h${Math.min(Math.max(Number(data.level) || 2, 2), 4)}`;
       return <Tag className="editorjs-preserve-whitespace"><InlineHtml html={data.text} /></Tag>;
     }
-    case 'paragraph':
-      return <p className="editorjs-preserve-whitespace"><InlineHtml html={data.text} /></p>;
-    case 'list': {
-      const Tag = data.style === 'ordered' ? 'ol' : 'ul';
-      return <Tag>{(data.items || []).map((item, index) => <li key={index} className="editorjs-preserve-whitespace"><InlineHtml html={itemText(item)} /></li>)}</Tag>;
+    case 'paragraph': {
+      const text = data.text || '';
+      const blank = !text.replace(/<br\s*\/?>|&nbsp;|\s/gi, '');
+      return <p className="editorjs-preserve-whitespace">{blank ? <br /> : <InlineHtml html={text} />}</p>;
     }
+    case 'list':
+      return <List items={data.items || []} style={data.style} />;
     case 'checklist':
-      return (
-        <ul className="editorjs-checklist">
-          {(data.items || []).map((item, index) => (
-            <li key={index}>
-              <input type="checkbox" checked={Boolean(item.checked)} readOnly />
-              <span className="editorjs-preserve-whitespace"><InlineHtml html={item.text || ''} /></span>
-            </li>
-          ))}
-        </ul>
-      );
+      return <List items={data.items || []} style="checklist" />;
     case 'quote':
-      return <blockquote><p className="editorjs-preserve-whitespace"><InlineHtml html={data.text} /></p>{data.caption && <cite className="editorjs-preserve-whitespace"><InlineHtml html={data.caption} /></cite>}</blockquote>;
+      return (
+        <blockquote style={data.alignment ? { textAlign: data.alignment } : undefined}>
+          <p className="editorjs-preserve-whitespace"><InlineHtml html={data.text} /></p>
+          {data.caption && <cite className="editorjs-preserve-whitespace"><InlineHtml html={data.caption} /></cite>}
+        </blockquote>
+      );
     case 'warning':
       return <aside className="editorjs-warning"><strong className="editorjs-preserve-whitespace"><InlineHtml html={data.title} /></strong><p className="editorjs-preserve-whitespace"><InlineHtml html={data.message} /></p></aside>;
     case 'delimiter':
@@ -93,16 +114,33 @@ function imageClassName(data, tunes = {}) {
 }
 
 function itemText(item) {
-  return typeof item === 'string' ? item : item?.content || item?.text || '';
+  if (typeof item === 'string') return item;
+  if (item && typeof item === 'object') return item.content || item.text || '';
+  return '';
 }
 
 function Table({ data }) {
+  const rows = data.content || [];
+  const hasHeadings = Boolean(data.withHeadings) && rows.length > 0;
+  const bodyRows = hasHeadings ? rows.slice(1) : rows;
+
   return (
     <div className="editorjs-table-wrap">
       <table>
+        {hasHeadings && (
+          <thead>
+            <tr>
+              {rows[0].map((cell, cellIndex) => (
+                <th key={`head-${cellIndex}`} className="editorjs-preserve-whitespace"><InlineHtml html={cell} /></th>
+              ))}
+            </tr>
+          </thead>
+        )}
         <tbody>
-          {(data.content || []).map((row, rowIndex) => (
-            <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex} className="editorjs-preserve-whitespace"><InlineHtml html={cell} /></td>)}</tr>
+          {bodyRows.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {row.map((cell, cellIndex) => <td key={cellIndex} className="editorjs-preserve-whitespace"><InlineHtml html={cell} /></td>)}
+            </tr>
           ))}
         </tbody>
       </table>

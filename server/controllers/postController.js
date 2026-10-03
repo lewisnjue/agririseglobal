@@ -18,6 +18,16 @@ const TEXT_FIELDS_BY_TYPE = {
   image: ['caption'],
 };
 
+const sanitizeListItem = (item) => {
+  if (typeof item === 'string') return DOMPurify.sanitize(item);
+
+  const out = { ...item };
+  if (out.content !== undefined) out.content = DOMPurify.sanitize(out.content || '');
+  if (out.text !== undefined) out.text = DOMPurify.sanitize(out.text || '');
+  if (Array.isArray(out.items)) out.items = out.items.map(sanitizeListItem);
+  return out;
+};
+
 const sanitizeEditorData = (raw) => {
   let document;
   try {
@@ -42,11 +52,7 @@ const sanitizeEditorData = (raw) => {
       if (block.type === 'raw') {
         data.html = DOMPurify.sanitize(data.html || '', { ADD_ATTR: ['target'] });
       } else if (block.type === 'list' || block.type === 'checklist') {
-        data.items = (data.items || []).map((item) => (
-          typeof item === 'string'
-            ? DOMPurify.sanitize(item)
-            : { ...item, text: DOMPurify.sanitize(item.text || item.content || '') }
-        ));
+        data.items = (data.items || []).map(sanitizeListItem);
       } else if (block.type === 'table') {
         data.content = (data.content || []).map((row) => row.map((cell) => DOMPurify.sanitize(cell || '')));
       } else {
@@ -119,7 +125,7 @@ const getPosts = async (req, res) => {
 const getPostBySlug = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT p.*, u.id AS author_id, u.name AS author_name, u.email AS author_email, u.profile_image AS author_profile_image, u.bio AS author_bio, u.location AS author_location FROM posts p LEFT JOIN users u ON u.id = p.user_id WHERE p.slug = $1 AND p.status = 'published'",
+      "SELECT p.*, u.id AS author_id, u.name AS author_name, u.profile_image AS author_profile_image, u.bio AS author_bio, u.location AS author_location FROM posts p LEFT JOIN users u ON u.id = p.user_id WHERE p.slug = $1 AND p.status = 'published'",
       [req.params.slug]
     );
     if (result.rows.length === 0) {

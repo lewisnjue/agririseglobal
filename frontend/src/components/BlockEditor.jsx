@@ -65,7 +65,7 @@ export default function BlockEditor({ content, onChange, placeholder = 'Start wr
       autofocus: false,
       inlineToolbar: ['bold', 'italic', 'link', 'marker', 'inlineCode'],
       tools: {
-        paragraph: { class: Paragraph, inlineToolbar: true },
+        paragraph: { class: Paragraph, inlineToolbar: true, config: { preserveBlank: true } },
         header: {
           class: Header,
           inlineToolbar: true,

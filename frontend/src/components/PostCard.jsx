@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
+import { assetUrl } from '../services/api';
 
 export default function PostCard({ post }) {
   const excerpt = post.excerpt || '';
+  const imageUrl = post.featured_image ? assetUrl(post.featured_image) : '';
 
   return (
     <article className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-xl transform hover:-translate-y-1 transition-all">
       <Link to={`/blog/${post.slug}`} className="block group">
         <div className="relative w-full h-52 overflow-hidden rounded-t-xl">
-          {post.featured_image ? (
+          {imageUrl ? (
             <img
-              src={post.featured_image}
+              src={imageUrl}
               alt={post.title}
               className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
             />

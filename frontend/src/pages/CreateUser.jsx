@@ -13,10 +13,18 @@ export default function CreateUser() {
 
   const generatePassword = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-    let pwd = '';
-    for (let i = 0; i < 12; i++) {
-      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    const randomValues = new Uint32Array(12);
+    const hasSecureRandom = typeof crypto !== 'undefined' && crypto.getRandomValues;
+
+    if (hasSecureRandom) {
+      crypto.getRandomValues(randomValues);
+    } else {
+      for (let i = 0; i < randomValues.length; i += 1) {
+        randomValues[i] = Math.floor(Math.random() * 4294967295);
+      }
     }
+
+    const pwd = Array.from(randomValues, (value) => chars[value % chars.length]).join('');
     setPassword(pwd);
   };
 

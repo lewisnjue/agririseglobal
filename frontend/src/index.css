@@ -95,6 +95,34 @@ html.dark .editorjs-shell {
   white-space: pre-wrap;
 }
 
+.editorjs-renderer p {
+  min-height: 1.5em;
+}
+
+.editorjs-renderer a {
+  color: #047857;
+  text-decoration: underline;
+}
+
+.editorjs-renderer mark.cdx-marker {
+  background: rgba(245, 235, 111, 0.4);
+  padding: 2px 0;
+}
+
+.editorjs-renderer code.inline-code {
+  background: rgba(250, 239, 240, 0.78);
+  color: #b44437;
+  padding: 2px 5px;
+  border-radius: 5px;
+  font-size: 0.85em;
+}
+
+.editorjs-renderer blockquote {
+  border-left: 4px solid #cbd5e1;
+  padding-left: 1rem;
+  font-style: italic;
+}
+
 .editorjs-delimiter {
   border: 0;
   border-top: 2px solid #cbd5e1;

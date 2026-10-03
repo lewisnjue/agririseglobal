@@ -24,6 +24,7 @@ const getObject = async (req, res) => {
     const object = await r2.send(new GetObjectCommand({ Bucket: bucketName, Key: key }));
     if (object.ContentType) res.type(object.ContentType);
     if (object.ETag) res.set('ETag', object.ETag);
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
     object.Body.pipe(res);
   } catch (error) {
     if (error.name === 'NoSuchKey') return res.status(404).json({ error: 'Object not found' });
