@@ -5,7 +5,7 @@ export default function EditorJsRenderer({ content, className = '' }) {
   }
 
   return (
-    <div className={`editorjs-renderer prose prose-slate max-w-none ${className}`}>
+    <div className={`editorjs-renderer prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-100 ${className}`}>
       {document.blocks.map((block, index) => (
         <Block key={block.id || `${block.type}-${index}`} block={block} />
       ))}

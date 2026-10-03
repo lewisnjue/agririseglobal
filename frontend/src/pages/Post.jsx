@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { assetUrl, postsApi, shareUrl } from '../services/api';
 import EditorJsRenderer from '../components/EditorJsRenderer';
 
@@ -9,6 +9,7 @@ function AuthorAvatar({ image, name }) {
 
 export default function Post() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,7 +94,19 @@ export default function Post() {
         <EditorJsRenderer content={post.content} />
       </article>
       <p className="mt-8">
-        <Link to="/blog" className="text-blue-600 hover:underline">← Back to blog</Link>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 2) {
+              navigate(-1);
+              return;
+            }
+            navigate('/blog');
+          }}
+          className="text-blue-600 hover:underline"
+        >
+          ← Back to blog
+        </button>
       </p>
     </main>
   );

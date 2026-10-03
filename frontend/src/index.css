@@ -60,6 +60,23 @@ body {
   border-color: #64748b;
 }
 
+.dark .editorjs-shell,
+.dark .editorjs-renderer {
+  color: #e2e8f0;
+}
+
+.dark .editorjs-renderer a {
+  color: #6ee7b7;
+}
+
+.dark .editorjs-renderer blockquote {
+  border-left-color: #475569;
+}
+
+.dark .editorjs-renderer code {
+  color: #f8fafc;
+}
+
 .dark .editorjs-shell {
   background: #1e293b;
   border-color: #475569;

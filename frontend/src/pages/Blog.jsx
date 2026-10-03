@@ -56,7 +56,7 @@ export default function Blog() {
             page={data.page}
             totalPages={data.totalPages}
             basePath="/blog"
-            query={categoryParam !== 'all' ? { category: categoryParam } : {}}
+            query={selectedCategory !== 'all' ? { category: selectedCategory } : {}}
           />
         </>
       )}
