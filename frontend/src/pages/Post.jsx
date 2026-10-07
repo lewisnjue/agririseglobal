@@ -83,7 +83,7 @@ export default function Post() {
           </figure>
         )}
         <h1 className="text-3xl font-bold text-slate-800 mb-2">{post.title}</h1>
-        {(post.description || post.excerpt) && <p className="text-lg text-slate-600 mb-5">{post.description || post.excerpt}</p>}
+        {post.description && <p className="text-lg text-slate-600 mb-5">{post.description}</p>}
         <div className="flex items-center gap-3 text-slate-500 text-sm mb-6">
           {post.author_id ? <Link to={`/users/${post.author_id}`} title={`View ${post.author_name || 'author'}'s profile`}><AuthorAvatar image={post.author_profile_image} name={post.author_name} /></Link> : <AuthorAvatar name="Admin" />}
           <span>By {post.author_name || 'Admin'} &middot; {new Date(post.created_at).toLocaleDateString()}</span>

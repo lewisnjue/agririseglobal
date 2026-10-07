@@ -30,6 +30,10 @@ function InlineHtml({ html = '' }) {
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
+function plainText(html = '') {
+  return new DOMParser().parseFromString(html, 'text/html').body.textContent.trim();
+}
+
 function List({ items = [], style }) {
   const Tag = style === 'ordered' ? 'ol' : 'ul';
   const checklist = style === 'checklist';
@@ -88,7 +92,7 @@ function Block({ block }) {
     case 'image':
       return (
         <figure className={imageClassName(data, block.tunes)}>
-          <img src={data.file?.url} alt={data.caption || ''} />
+          <img src={data.file?.url} alt={plainText(data.caption)} />
           {data.caption && <figcaption><InlineHtml html={data.caption} /></figcaption>}
         </figure>
       );

@@ -92,7 +92,7 @@ const extractExcerpt = (document, maxLength = 300) => {
       parts.push(data.items.map((item) => typeof item === 'string' ? item : item.text || item.content || '').join(' '));
     }
   }
-  const plain = decodeHtmlEntities(parts.join(' ')).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  const plain = decodeHtmlEntities(parts.join(' ').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
   return plain.length > maxLength ? `${plain.slice(0, maxLength)}…` : plain;
 };
 
@@ -204,13 +204,13 @@ const createPost = async (req, res) => {
 
     const result = await pool.query(
       'INSERT INTO posts (title, content, excerpt, description, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
-      [title, JSON.stringify(document), extractExcerpt(document), String(description || '').trim(), safeSlug, featured_image || null, String(featured_image_caption || '').trim(), category || 'generic', status || 'draft', 'native', req.user.id]
+      [title, JSON.stringify(document), extractExcerpt(document), String(description || '').trim().slice(0, 300), safeSlug, featured_image || null, String(featured_image_caption || '').trim(), category || 'generic', status || 'draft', 'native', req.user.id]
     ).catch((err) => {
       if (err.code === '23505') {
         const retrySlug = `${safeSlug}-${Date.now()}`;
         return pool.query(
           'INSERT INTO posts (title, content, excerpt, description, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
-          [title, JSON.stringify(document), extractExcerpt(document), String(description || '').trim(), retrySlug, featured_image || null, String(featured_image_caption || '').trim(), category || 'generic', status || 'draft', 'native', req.user.id]
+          [title, JSON.stringify(document), extractExcerpt(document), String(description || '').trim().slice(0, 300), retrySlug, featured_image || null, String(featured_image_caption || '').trim(), category || 'generic', status || 'draft', 'native', req.user.id]
         );
       }
       throw err;
@@ -238,7 +238,7 @@ const updatePost = async (req, res) => {
     const newTitle = title || post.title;
     let newContent = post.content;
     let newExcerpt = post.excerpt || '';
-    const newDescription = description !== undefined ? String(description || '').trim() : (post.description || '');
+    const newDescription = description !== undefined ? String(description || '').trim().slice(0, 300) : (post.description || '');
     if (content) {
       try {
         const document = sanitizeEditorData(content);

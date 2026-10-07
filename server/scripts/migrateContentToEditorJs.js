@@ -3,6 +3,14 @@ const createDOMPurify = require('dompurify');
 const pool = require('../config/db');
 
 const DOMPurify = createDOMPurify(new JSDOM('').window);
+const decodeHtmlEntities = (text) => String(text || '')
+  .replace(/&nbsp;/gi, ' ')
+  .replace(/&amp;/gi, '&')
+  .replace(/&lt;/gi, '<')
+  .replace(/&gt;/gi, '>')
+  .replace(/&quot;/gi, '"')
+  .replace(/&#39;/gi, "'")
+  .replace(/&apos;/gi, "'");
 
 function toEditorDocument(content) {
   try {
@@ -27,7 +35,7 @@ function extractExcerpt(document) {
     if (block.type === 'raw' && data.html) parts.push(data.html);
     if (Array.isArray(data.items)) parts.push(data.items.map((item) => typeof item === 'string' ? item : item.text || item.content || '').join(' '));
   }
-  const plain = parts.join(' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  const plain = decodeHtmlEntities(parts.join(' ').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
   return plain.length > 300 ? `${plain.slice(0, 300)}…` : plain;
 }
 

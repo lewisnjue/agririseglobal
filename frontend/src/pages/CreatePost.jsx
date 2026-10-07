@@ -4,6 +4,7 @@ import { postsApi } from '../services/api';
 import BlockEditor from '../components/BlockEditor';
 import EditorJsRenderer from '../components/EditorJsRenderer';
 import FeaturedImageField from '../components/FeaturedImageField';
+import { assetUrl } from '../services/api';
 
 export default function CreatePost() {
   const [title, setTitle] = useState('');
@@ -77,9 +78,11 @@ export default function CreatePost() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                maxLength={300}
                 placeholder="Write a short summary of this article"
                 className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-slate-500"
               />
+              <p className="text-xs text-slate-500 mt-1">{description.length}/300</p>
             </div>
 
             <FeaturedImageField value={featuredImage} onChange={setFeaturedImage} caption={featuredImageCaption} onCaptionChange={setFeaturedImageCaption} />
@@ -136,7 +139,7 @@ export default function CreatePost() {
             <h2 className="text-sm font-semibold text-slate-700 mb-3">Preview</h2>
             {featuredImage ? (
               <>
-                <img src={featuredImage} alt={featuredImageCaption || title || 'Featured'} className="w-full h-56 object-cover rounded-md border border-slate-200" />
+                <img src={assetUrl(featuredImage)} alt={featuredImageCaption || title || 'Featured'} className="w-full h-56 object-cover rounded-md border border-slate-200" />
                 {featuredImageCaption && <p className="text-xs text-slate-500 mt-1 mb-3">{featuredImageCaption}</p>}
               </>
             ) : (
@@ -159,11 +162,12 @@ export default function CreatePost() {
 }
 
 function getExcerpt(document) {
-  const text = (document?.blocks || []).map((block) => {
+  const markup = (document?.blocks || []).map((block) => {
     const data = block.data || {};
     if (typeof data.text === 'string') return data.text;
     if (Array.isArray(data.items)) return data.items.map((item) => typeof item === 'string' ? item : item.text || item.content || '').join(' ');
     return '';
-  }).join(' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  }).join(' ').replace(/<[^>]*>/g, ' ');
+  const text = new DOMParser().parseFromString(markup, 'text/html').body.textContent.replace(/\s+/g, ' ').trim();
   return text.length > 300 ? `${text.slice(0, 300)}…` : text;
 }

@@ -23,7 +23,6 @@ export default function PostCard({ post }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           <span className="absolute left-3 bottom-3 bg-white/90 text-xs text-slate-800 px-2 py-1 rounded-full font-medium">{post.category || 'general'}</span>
         </div>
-        {post.featured_image_caption && <p className="px-5 pt-3 text-xs text-slate-500">{post.featured_image_caption}</p>}
         <div className="p-5">
           <h2 className="text-lg md:text-xl font-semibold text-slate-800 mb-2 line-clamp-2">{post.title}</h2>
           <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
