@@ -9,6 +9,8 @@ export default function CreatePost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState(null);
   const [featuredImage, setFeaturedImage] = useState('');
+  const [featuredImageCaption, setFeaturedImageCaption] = useState('');
+  const [description, setDescription] = useState('');
   const [category, setCategory] = useState('generic');
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
@@ -25,6 +27,8 @@ export default function CreatePost() {
         title,
         content: JSON.stringify(content || { time: Date.now(), blocks: [], version: '2.31.0' }),
         featured_image: featuredImage || null,
+        featured_image_caption: featuredImageCaption,
+        description,
         category,
         status,
       });
@@ -66,7 +70,19 @@ export default function CreatePost() {
               <BlockEditor content={content} onChange={setContent} />
             </div>
 
-            <FeaturedImageField value={featuredImage} onChange={setFeaturedImage} />
+            <div>
+              <label htmlFor="post-description" className="block text-sm font-medium text-slate-700 mb-1">Article description</label>
+              <textarea
+                id="post-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="Write a short summary of this article"
+                className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-slate-500"
+              />
+            </div>
+
+            <FeaturedImageField value={featuredImage} onChange={setFeaturedImage} caption={featuredImageCaption} onCaptionChange={setFeaturedImageCaption} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -119,13 +135,16 @@ export default function CreatePost() {
           <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
             <h2 className="text-sm font-semibold text-slate-700 mb-3">Preview</h2>
             {featuredImage ? (
-              <img src={featuredImage} alt="Featured" className="w-full h-56 object-cover rounded-md mb-3 border border-slate-200" />
+              <>
+                <img src={featuredImage} alt={featuredImageCaption || title || 'Featured'} className="w-full h-56 object-cover rounded-md border border-slate-200" />
+                {featuredImageCaption && <p className="text-xs text-slate-500 mt-1 mb-3">{featuredImageCaption}</p>}
+              </>
             ) : (
               <div className="w-full h-56 bg-slate-100 rounded-md flex items-center justify-center text-slate-400 mb-3 border border-dashed border-slate-200">No image</div>
             )}
 
             <h3 className="text-lg font-semibold text-slate-800 mb-1">{title || 'Untitled'}</h3>
-            {showPreview ? <EditorJsRenderer content={content} /> : <p className="text-sm text-slate-600">{getExcerpt(content) || 'No content yet.'}</p>}
+            {showPreview ? <EditorJsRenderer content={content} /> : <p className="text-sm text-slate-600">{description || getExcerpt(content) || 'No content yet.'}</p>}
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 text-sm text-slate-600">

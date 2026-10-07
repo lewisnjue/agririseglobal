@@ -187,7 +187,7 @@ const getPostById = async (req, res) => {
 // Admin: create post
 const createPost = async (req, res) => {
   try {
-    const { title, content, featured_image, category, status } = req.body;
+    const { title, content, featured_image, featured_image_caption, description, category, status } = req.body;
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
     }
@@ -203,14 +203,14 @@ const createPost = async (req, res) => {
     const safeSlug = slug || `post-${Date.now()}`;
 
     const result = await pool.query(
-      'INSERT INTO posts (title, content, excerpt, slug, featured_image, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-      [title, JSON.stringify(document), extractExcerpt(document), safeSlug, featured_image || null, category || 'generic', status || 'draft', 'native', req.user.id]
+      'INSERT INTO posts (title, content, excerpt, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [title, JSON.stringify(document), description ?? extractExcerpt(document), safeSlug, featured_image || null, featured_image_caption || '', category || 'generic', status || 'draft', 'native', req.user.id]
     ).catch((err) => {
       if (err.code === '23505') {
         const retrySlug = `${safeSlug}-${Date.now()}`;
         return pool.query(
-          'INSERT INTO posts (title, content, excerpt, slug, featured_image, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-          [title, JSON.stringify(document), extractExcerpt(document), retrySlug, featured_image || null, category || 'generic', status || 'draft', 'native', req.user.id]
+          'INSERT INTO posts (title, content, excerpt, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+          [title, JSON.stringify(document), description ?? extractExcerpt(document), retrySlug, featured_image || null, featured_image_caption || '', category || 'generic', status || 'draft', 'native', req.user.id]
         );
       }
       throw err;
@@ -225,7 +225,7 @@ const createPost = async (req, res) => {
 // Admin: update post
 const updatePost = async (req, res) => {
   try {
-    const { title, content, featured_image, category, status } = req.body;
+    const { title, content, featured_image, featured_image_caption, description, category, status } = req.body;
     const { id } = req.params;
 
     const existing = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
@@ -237,23 +237,24 @@ const updatePost = async (req, res) => {
     if (!canManagePost(req.user, post)) return res.status(403).json({ error: 'You can only edit your own posts' });
     const newTitle = title || post.title;
     let newContent = post.content;
-    let newExcerpt = post.excerpt || '';
+    let newExcerpt = description !== undefined ? description : (post.excerpt || '');
     if (content) {
       try {
         const document = sanitizeEditorData(content);
         newContent = JSON.stringify(document);
-        newExcerpt = extractExcerpt(document);
+        if (description === undefined) newExcerpt = extractExcerpt(document);
       } catch {
         return res.status(400).json({ error: 'Invalid content format' });
       }
     }
     const newImage = featured_image !== undefined ? featured_image : post.featured_image;
+    const newImageCaption = featured_image_caption !== undefined ? featured_image_caption : (post.featured_image_caption || '');
     const newCategory = category !== undefined ? category : (post.category || 'generic');
     const newStatus = status || post.status;
 
     const result = await pool.query(
-      'UPDATE posts SET title = $1, content = $2, excerpt = $3, featured_image = $4, category = $5, status = $6, updated_at = NOW() WHERE id = $7 RETURNING *',
-      [newTitle, newContent, newExcerpt, newImage, newCategory, newStatus, id]
+      'UPDATE posts SET title = $1, content = $2, excerpt = $3, featured_image = $4, featured_image_caption = $5, category = $6, status = $7, updated_at = NOW() WHERE id = $8 RETURNING *',
+      [newTitle, newContent, newExcerpt, newImage, newImageCaption, newCategory, newStatus, id]
     );
 
     res.json({ post: result.rows[0] });

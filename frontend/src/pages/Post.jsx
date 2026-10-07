@@ -77,9 +77,13 @@ export default function Post() {
     <main className="max-w-3xl mx-auto px-4 py-12">
       <article>
         {post.featured_image && (
-          <img src={assetUrl(post.featured_image)} alt={post.title} className="w-full rounded-lg shadow-md mb-6" />
+          <figure className="mb-6">
+            <img src={assetUrl(post.featured_image)} alt={post.featured_image_caption || post.title} className="w-full rounded-lg shadow-md" />
+            {post.featured_image_caption && <figcaption className="mt-2 text-sm text-slate-500">{post.featured_image_caption}</figcaption>}
+          </figure>
         )}
         <h1 className="text-3xl font-bold text-slate-800 mb-2">{post.title}</h1>
+        {post.excerpt && <p className="text-lg text-slate-600 mb-5">{post.excerpt}</p>}
         <div className="flex items-center gap-3 text-slate-500 text-sm mb-6">
           {post.author_id ? <Link to={`/users/${post.author_id}`} title={`View ${post.author_name || 'author'}'s profile`}><AuthorAvatar image={post.author_profile_image} name={post.author_name} /></Link> : <AuthorAvatar name="Admin" />}
           <span>By {post.author_name || 'Admin'} &middot; {new Date(post.created_at).toLocaleDateString()}</span>

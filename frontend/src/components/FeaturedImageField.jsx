@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { assetUrl, uploadApi } from '../services/api';
 
-export default function FeaturedImageField({ value, onChange }) {
+export default function FeaturedImageField({ value, onChange, caption, onCaptionChange }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -54,6 +54,17 @@ export default function FeaturedImageField({ value, onChange }) {
       </div>
       <p className="text-xs text-slate-500 mt-2">Paste a direct image URL or upload an image from your device.</p>
       {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
+      <div className="mt-3">
+        <label htmlFor="featured-image-caption" className="block text-sm font-medium text-slate-700 mb-1">Image caption</label>
+        <input
+          id="featured-image-caption"
+          type="text"
+          value={caption}
+          onChange={(event) => onCaptionChange(event.target.value)}
+          placeholder="Add a caption for the featured image"
+          className="w-full px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-slate-500"
+        />
+      </div>
       {value && (
           <img src={assetUrl(value)} alt="Featured image preview" className="mt-3 w-full max-h-48 object-cover rounded-md border border-slate-200" />
       )}
