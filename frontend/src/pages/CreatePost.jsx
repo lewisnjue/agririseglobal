@@ -144,7 +144,7 @@ export default function CreatePost() {
             )}
 
             <h3 className="text-lg font-semibold text-slate-800 mb-1">{title || 'Untitled'}</h3>
-            {showPreview ? <EditorJsRenderer content={content} /> : <p className="text-sm text-slate-600">{description || getExcerpt(content) || 'No content yet.'}</p>}
+            {showPreview ? <EditorJsRenderer content={content} /> : <p className="text-sm text-slate-600">{description || getExcerpt(content) || 'No description added.'}</p>}
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 text-sm text-slate-600">

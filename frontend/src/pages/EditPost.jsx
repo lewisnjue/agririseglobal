@@ -33,7 +33,7 @@ export default function EditPost() {
           setContent(p.content || '');
           setFeaturedImage(p.featured_image || '');
           setFeaturedImageCaption(p.featured_image_caption || '');
-          setDescription(p.excerpt || '');
+          setDescription(p.description || '');
           setCategory(p.category || 'generic');
           setStatus(p.status || 'draft');
         } else {
@@ -175,7 +175,7 @@ export default function EditPost() {
             <h3 className="text-lg font-semibold text-slate-800 mb-1">{title || 'Untitled'}</h3>
             <p className="text-xs text-slate-500 mb-3">{post?.created_at ? new Date(post.created_at).toLocaleDateString() : ''}</p>
 
-            {showPreview ? <EditorJsRenderer content={content} /> : <p className="text-sm text-slate-600">{description || getExcerpt(content) || 'No content yet.'}</p>}
+            {showPreview ? <EditorJsRenderer content={content} /> : <p className="text-sm text-slate-600">{description || post?.excerpt || getExcerpt(toEditorDocument(content)) || 'No description added.'}</p>}
           </div>
 
           <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 text-sm text-slate-600">

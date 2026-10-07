@@ -34,7 +34,7 @@ export default function Post() {
 
   useEffect(() => {
     if (!post) return undefined;
-    const description = post.excerpt || `Read ${post.title} on Agri Rise Global`;
+    const description = post.description || post.excerpt || `Read ${post.title} on Agri Rise Global`;
     const imageUrl = post.featured_image ? assetUrl(post.featured_image) : '';
     document.title = `${post.title} | Agri Rise Global`;
     const tags = [
@@ -83,7 +83,7 @@ export default function Post() {
           </figure>
         )}
         <h1 className="text-3xl font-bold text-slate-800 mb-2">{post.title}</h1>
-        {post.excerpt && <p className="text-lg text-slate-600 mb-5">{post.excerpt}</p>}
+        {(post.description || post.excerpt) && <p className="text-lg text-slate-600 mb-5">{post.description || post.excerpt}</p>}
         <div className="flex items-center gap-3 text-slate-500 text-sm mb-6">
           {post.author_id ? <Link to={`/users/${post.author_id}`} title={`View ${post.author_name || 'author'}'s profile`}><AuthorAvatar image={post.author_profile_image} name={post.author_name} /></Link> : <AuthorAvatar name="Admin" />}
           <span>By {post.author_name || 'Admin'} &middot; {new Date(post.created_at).toLocaleDateString()}</span>

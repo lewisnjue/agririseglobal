@@ -110,6 +110,10 @@ const initDb = async (retries = 5) => {
               WHERE table_name='posts' AND column_name='featured_image_caption') THEN
               ALTER TABLE posts ADD COLUMN featured_image_caption TEXT DEFAULT '';
             END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+              WHERE table_name='posts' AND column_name='description') THEN
+              ALTER TABLE posts ADD COLUMN description TEXT DEFAULT '';
+            END IF;
           END $$;
         `);
 

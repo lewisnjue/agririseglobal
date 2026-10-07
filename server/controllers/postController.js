@@ -107,7 +107,7 @@ const getPosts = async (req, res) => {
     const category = req.query.category;
 
     let countQuery = "SELECT COUNT(*) FROM posts WHERE status = 'published'";
-    let dataQuery = "SELECT p.id, p.title, p.slug, p.featured_image, p.category, p.source, p.status, p.created_at, p.updated_at, p.excerpt, u.id AS author_id, u.name AS author_name, u.profile_image AS author_profile_image, u.bio AS author_bio, u.location AS author_location FROM posts p LEFT JOIN users u ON u.id = p.user_id WHERE p.status = 'published'";
+    let dataQuery = "SELECT p.id, p.title, p.slug, p.featured_image, p.featured_image_caption, p.description, p.category, p.source, p.status, p.created_at, p.updated_at, p.excerpt, u.id AS author_id, u.name AS author_name, u.profile_image AS author_profile_image, u.bio AS author_bio, u.location AS author_location FROM posts p LEFT JOIN users u ON u.id = p.user_id WHERE p.status = 'published'";
     const queryParams = [];
 
     if (category && category !== 'all') {
@@ -203,14 +203,14 @@ const createPost = async (req, res) => {
     const safeSlug = slug || `post-${Date.now()}`;
 
     const result = await pool.query(
-      'INSERT INTO posts (title, content, excerpt, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-      [title, JSON.stringify(document), description ?? extractExcerpt(document), safeSlug, featured_image || null, featured_image_caption || '', category || 'generic', status || 'draft', 'native', req.user.id]
+      'INSERT INTO posts (title, content, excerpt, description, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [title, JSON.stringify(document), extractExcerpt(document), String(description || '').trim(), safeSlug, featured_image || null, String(featured_image_caption || '').trim(), category || 'generic', status || 'draft', 'native', req.user.id]
     ).catch((err) => {
       if (err.code === '23505') {
         const retrySlug = `${safeSlug}-${Date.now()}`;
         return pool.query(
-          'INSERT INTO posts (title, content, excerpt, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
-          [title, JSON.stringify(document), description ?? extractExcerpt(document), retrySlug, featured_image || null, featured_image_caption || '', category || 'generic', status || 'draft', 'native', req.user.id]
+          'INSERT INTO posts (title, content, excerpt, description, slug, featured_image, featured_image_caption, category, status, source, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+          [title, JSON.stringify(document), extractExcerpt(document), String(description || '').trim(), retrySlug, featured_image || null, String(featured_image_caption || '').trim(), category || 'generic', status || 'draft', 'native', req.user.id]
         );
       }
       throw err;
@@ -237,24 +237,25 @@ const updatePost = async (req, res) => {
     if (!canManagePost(req.user, post)) return res.status(403).json({ error: 'You can only edit your own posts' });
     const newTitle = title || post.title;
     let newContent = post.content;
-    let newExcerpt = description !== undefined ? description : (post.excerpt || '');
+    let newExcerpt = post.excerpt || '';
+    const newDescription = description !== undefined ? String(description || '').trim() : (post.description || '');
     if (content) {
       try {
         const document = sanitizeEditorData(content);
         newContent = JSON.stringify(document);
-        if (description === undefined) newExcerpt = extractExcerpt(document);
+        newExcerpt = extractExcerpt(document);
       } catch {
         return res.status(400).json({ error: 'Invalid content format' });
       }
     }
     const newImage = featured_image !== undefined ? featured_image : post.featured_image;
-    const newImageCaption = featured_image_caption !== undefined ? featured_image_caption : (post.featured_image_caption || '');
+    const newImageCaption = featured_image_caption !== undefined ? String(featured_image_caption || '').trim() : (post.featured_image_caption || '');
     const newCategory = category !== undefined ? category : (post.category || 'generic');
     const newStatus = status || post.status;
 
     const result = await pool.query(
-      'UPDATE posts SET title = $1, content = $2, excerpt = $3, featured_image = $4, featured_image_caption = $5, category = $6, status = $7, updated_at = NOW() WHERE id = $8 RETURNING *',
-      [newTitle, newContent, newExcerpt, newImage, newImageCaption, newCategory, newStatus, id]
+      'UPDATE posts SET title = $1, content = $2, excerpt = $3, description = $4, featured_image = $5, featured_image_caption = $6, category = $7, status = $8, updated_at = NOW() WHERE id = $9 RETURNING *',
+      [newTitle, newContent, newExcerpt, newDescription, newImage, newImageCaption, newCategory, newStatus, id]
     );
 
     res.json({ post: result.rows[0] });
