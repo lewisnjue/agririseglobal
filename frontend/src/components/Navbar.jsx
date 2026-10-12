@@ -15,7 +15,7 @@ export default function Navbar({ darkMode, onToggleTheme }) {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="h-9 w-9 rounded-full overflow-hidden bg-white/10 flex items-center justify-center">
-              <img src={assetUrl('/api/uploads/object/site/icon.jpg')} alt="Agri Rise Global" className="h-7 w-auto object-contain" />
+              <img src={assetUrl('/api/uploads/object/site/icon.jpeg')} alt="Agri Rise Global" className="h-7 w-auto object-contain" />
             </div>
             <span className="font-semibold text-lg hidden sm:inline tracking-wide">Agri Rise Global</span>
           </Link>

@@ -26,7 +26,7 @@ function Layout({ children }) {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-    document.querySelector('link[rel="icon"]')?.setAttribute('href', assetUrl('/api/uploads/object/site/icon.jpg'));
+    document.querySelector('link[rel="icon"]')?.setAttribute('href', assetUrl('/api/uploads/object/site/icon.jpeg'));
   }, [darkMode]);
 
   return (

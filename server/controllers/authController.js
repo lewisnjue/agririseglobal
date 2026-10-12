@@ -102,7 +102,7 @@ const login = async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role, profile_image: user.profile_image, bio: user.bio, location: user.location },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, profile_image: user.profile_image, bio: user.bio, location: user.location, job_title: user.job_title },
     });
   } catch (err) {
     console.error('Login error:', err.message);
@@ -117,7 +117,7 @@ const login = async (req, res) => {
 const me = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, name, role, profile_image, bio, location, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, role, profile_image, bio, location, job_title, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -131,10 +131,10 @@ const me = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, profile_image, bio, location } = req.body;
+    const { name, profile_image, bio, location, job_title } = req.body;
     const result = await pool.query(
-      'UPDATE users SET name = COALESCE(NULLIF($1, \'\'), name), profile_image = $2, bio = $3, location = $4 WHERE id = $5 RETURNING id, email, name, role, profile_image, bio, location, created_at',
-      [name?.trim(), profile_image || null, bio || '', location?.trim() || null, req.user.id]
+      'UPDATE users SET name = COALESCE(NULLIF($1, \'\'), name), profile_image = $2, bio = $3, location = $4, job_title = $5 WHERE id = $6 RETURNING id, email, name, role, profile_image, bio, location, job_title, created_at',
+      [name?.trim(), profile_image || null, bio || '', location?.trim() || null, job_title?.trim() || null, req.user.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json({ user: result.rows[0] });
@@ -146,7 +146,7 @@ const updateProfile = async (req, res) => {
 const getPublicProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, profile_image, bio, location, created_at FROM users WHERE id = $1',
+      'SELECT id, name, profile_image, bio, location, job_title, created_at FROM users WHERE id = $1',
       [req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Profile not found' });

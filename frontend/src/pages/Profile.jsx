@@ -9,6 +9,7 @@ export default function Profile() {
     profile_image: user?.profile_image || '',
     bio: user?.bio || '',
     location: user?.location || '',
+    job_title: user?.job_title || '',
   });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -68,6 +69,7 @@ export default function Profile() {
           </div>
         </div>
         <label className="block"><span className="block text-sm font-medium text-slate-700 mb-1">Name</span><input value={form.name} onChange={(event) => update('name', event.target.value)} required className="w-full px-3 py-2 border border-slate-300 rounded-lg" /></label>
+        <label className="block"><span className="block text-sm font-medium text-slate-700 mb-1">Job title</span><input value={form.job_title} onChange={(event) => update('job_title', event.target.value)} placeholder="e.g. Agricultural researcher" className="w-full px-3 py-2 border border-slate-300 rounded-lg" /></label>
         <label className="block"><span className="block text-sm font-medium text-slate-700 mb-1">Location</span><input value={form.location} onChange={(event) => update('location', event.target.value)} placeholder="e.g. Nairobi, Kenya" className="w-full px-3 py-2 border border-slate-300 rounded-lg" /></label>
         <label className="block"><span className="block text-sm font-medium text-slate-700 mb-1">About you</span><textarea value={form.bio} onChange={(event) => update('bio', event.target.value)} rows="5" placeholder="Share a little about your work and interests." className="w-full px-3 py-2 border border-slate-300 rounded-lg" /></label>
         <button type="submit" disabled={saving || uploading} className="px-5 py-2.5 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save profile'}</button>

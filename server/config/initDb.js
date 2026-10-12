@@ -16,6 +16,7 @@ const initDb = async (retries = 5) => {
             profile_image TEXT,
             bio TEXT DEFAULT '',
             location VARCHAR(255),
+            job_title VARCHAR(255),
             role VARCHAR(20) DEFAULT 'author' CHECK (role IN ('admin', 'author')),
             created_at TIMESTAMPTZ DEFAULT NOW()
           );
@@ -32,6 +33,9 @@ const initDb = async (retries = 5) => {
             END IF;
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='location') THEN
               ALTER TABLE users ADD COLUMN location VARCHAR(255);
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='job_title') THEN
+              ALTER TABLE users ADD COLUMN job_title VARCHAR(255);
             END IF;
           END $$;
         `);
